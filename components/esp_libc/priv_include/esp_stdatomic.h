@@ -75,8 +75,8 @@
 
 #define _ATOMIC_HW_STUB_CMP_EXCHANGE(n, type) \
     _ATOMIC_IF_NOT_EXT_RAM() { \
-        bool __atomic_s32c1i_compare_exchange_ ## n (volatile void* ptr, void* expected, type desired, bool weak, int success, int failure); \
-        return __atomic_s32c1i_compare_exchange_ ## n (ptr, expected, desired, weak, success, failure); \
+        bool __atomic_s32c1i_compare_exchange_ ## n (volatile void* ptr, void* expected, type desired, int success, int failure); \
+        return __atomic_s32c1i_compare_exchange_ ## n (ptr, expected, desired, success, failure); \
     }
 
 #define _ATOMIC_HW_STUB_LOAD(n, type) \
@@ -170,8 +170,14 @@ type __atomic_load_ ## n (const volatile void* ptr, int memorder) \
     return old; \
 }
 
+/* The size-specific library ABI has no weak parameter: a library call always
+ * implements strong compare/exchange. GCC's same-named source builtin has an
+ * additional weak argument, so use a distinct C identifier and export the
+ * standard library symbol without redeclaring that builtin. */
 #define ATOMIC_CMP_EXCHANGE(n, type) \
-bool __atomic_compare_exchange_ ## n (volatile void* ptr, void* expected, type desired, bool weak, int success, int failure) \
+bool __atomic_compare_exchange_impl_ ## n (volatile void* ptr, void* expected, type desired, int success, int failure) \
+    __asm__("__atomic_compare_exchange_" #n); \
+bool __atomic_compare_exchange_impl_ ## n (volatile void* ptr, void* expected, type desired, int success, int failure) \
 { \
     bool ret = false; \
     _ATOMIC_HW_STUB_CMP_EXCHANGE(n, type); \

@@ -33,9 +33,9 @@ type __atomic_s32c1i_load_ ## n (const volatile void* ptr, int memorder) \
 }
 
 #define ATOMIC_CMP_EXCHANGE(n, type) \
-bool __atomic_s32c1i_compare_exchange_ ## n (volatile void* ptr, void* expected, type desired, bool weak, int success, int failure) \
+bool __atomic_s32c1i_compare_exchange_ ## n (volatile void* ptr, void* expected, type desired, int success, int failure) \
 { \
-    return __atomic_compare_exchange_ ## n (ptr, expected, desired, weak, success, failure); \
+    return __atomic_compare_exchange_n((volatile type*)ptr, (type*)expected, desired, false, success, failure); \
 }
 
 #define ATOMIC_STORE(n, type) \
